@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FAF8F5">
+<title>Flock Manager</title>
+<link rel="manifest" href="/manifest.json">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Source Sans 3',sans-serif;background:#FAF8F5;color:#2D2A26;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit;font-size:16px}
+:root{
+  --bg:#FAF8F5;--surface:#FFFFFF;--border:#E8E4DF;--border-light:#F0EDE9;
+  --primary:#5B7F5E;--primary-light:#EBF2EC;--primary-dark:#4A6A4D;
+  --accent:#C5944B;--accent-light:#FDF6ED;
+  --text:#2D2A26;--text-muted:#7A756F;--text-light:#A09A93;
+  --danger:#B54A4A;--danger-light:#FBEAEA;
+}
+.app{min-height:100vh;padding-bottom:72px}
+.container{max-width:720px;margin:0 auto;padding:0 16px 16px}
+
+/* Nav */
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--surface);border-top:1px solid var(--border);height:64px;z-index:40}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--text-muted);cursor:pointer;min-width:44px;min-height:44px}
+.nav-btn.active{color:var(--primary);font-weight:600}
+.nav-btn span{font-size:11px;font-weight:500}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:8px}
+.card-tap{cursor:pointer;transition:background 0.1s}.card-tap:active{background:#f5f3f0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;border-radius:12px;border:none;cursor:pointer;min-height:44px;padding:12px 16px;font-size:16px;transition:opacity 0.1s}
+.btn:active{opacity:0.8}
+.btn:disabled{opacity:0.5;cursor:default}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;color:var(--text);border:none}
+.btn-lg{padding:16px 24px;font-size:18px}
+.btn-sm{padding:8px 12px;font-size:14px}
+.btn-full{width:100%}
+
+/* Forms */
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:14px;font-weight:500;color:var(--text-muted);margin-bottom:4px}
+.form-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:16px;background:var(--surface);color:var(--text)}
+.form-input:focus{outline:2px solid var(--primary);outline-offset:-1px}
+textarea.form-input{min-height:80px;resize:vertical}
+
+/* Toggle buttons */
+.toggle-group{display:flex;flex-wrap:wrap;gap:8px}
+.toggle-btn{padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;font-size:15px;min-height:44px;min-width:60px;cursor:pointer}
+.toggle-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600}
+.badge-sm{font-size:11px;padding:1px 8px}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.flex{display:flex}.flex-col{flex-direction:column}.gap-2{gap:8px}.gap-3{gap:12px}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.flex-1{flex:1}.w-full{width:100%}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.text-sm{font-size:14px}.text-xs{font-size:12px}.text-lg{font-size:18px}.text-xl{font-size:20px}.text-2xl{font-size:24px}
+.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}
+.mb-1{margin-bottom:4px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
+.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-4{margin-top:16px}
+.pt-2{padding-top:8px}.pt-4{padding-top:16px}.pb-2{padding-bottom:8px}
+.p-3{padding:12px}
+
+/* Header */
+.header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-top:8px}
+.header h2{font-size:20px;font-weight:700;flex:1}
+.back-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:none;background:none;cursor:pointer}
+
+/* FAB */
+.fab{position:fixed;bottom:80px;right:16px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:30}
+
+/* Progress bar */
+.progress-bar{width:100%;height:12px;border-radius:6px;background:var(--border-light);overflow:hidden}
+.progress-fill{height:100%;border-radius:6px;background:var(--primary);transition:width 0.3s}
+
+/* Overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.overlay .card{max-width:400px;width:100%}
+
+/* Animal avatar */
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;background:var(--primary-light);color:var(--primary);flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-lg{width:80px;height:80px;border-radius:16px;font-size:30px}
+
+/* Checkbox list */
+.check-list{max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px}
+.check-item{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer}
+.check-item input{width:18px;height:18px}
+
+/* Loading */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px}
+.loading-dot{width:64px;height:64px;border-radius:50%;background:var(--primary-light);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Quick pick pills */
+.pill{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--primary-light);color:var(--primary);border:none;cursor:pointer}
+
+/* Timeline */
+.timeline-item{display:flex;gap:12px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--border-light)}
+.timeline-item:last-child{border-bottom:none}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+  <div class="loading"><div class="loading-dot"></div><p class="text-sm" style="color:var(--text-muted)">Loading your flock…</p></div>
+</div>
+
+<!-- SVG Icons (inline, small set) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-syringe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+  <symbol id="i-skull" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="i-baby" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></symbol>
+</svg>
+
+<script>
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const genId = () => crypto.randomUUID();
+const now = () => new Date().toISOString();
+const todayISO = () => new Date().toISOString().split('T')[0];
+const toUK = d => { if(!d) return '—'; const dt=new Date(d); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`; };
+const addDays = (iso,n) => { const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().split('T')[0]; };
+const daysBetween = (a,b) => Math.round((new Date(b)-new Date(a))/86400000);
+const icon = (id,size=20) => `<svg width="${size}" height="${size}"><use href="#i-${id}"/></svg>`;
+const SEX_LABELS = {ewe:'Ewe',ram:'Ram',wether:'Wether',ram_lamb:'Ram Lamb',ewe_lamb:'Ewe Lamb'};
+const SEX_ICONS = {ewe:'♀',ram:'♂',wether:'♂',ram_lamb:'♂',ewe_lamb:'♀'};
+const STATUS_COLORS = {active:'#5B7F5E',sold:'#7A756F',slaughtered:'#7A756F',dead:'#B54A4A'};
+const ROUTE_LABELS = {oral:'Oral',injection:'Injection','pour-on':'Pour-on',other:'Other'};
+const REASON_LABELS = {purchase:'Purchase',sale:'Sale',slaughter:'Slaughter',grazing:'Grazing',other:'Other'};
+const label = a => a?.name || a?.visualTag || a?.eidTag || 'Unknown';
+const esc = s => { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
+
+// ─── Storage ─────────────────────────────────────────────────────────────────
+const DB_PREFIX = 'flock:';
+const store = {
+  async get(key) { const v = localStorage.getItem(key); if(v===null) throw new Error('Not found'); return {key, value: v}; },
+  async set(key, value) { localStorage.setItem(key, value); return {key, value}; },
+  async delete(key) { localStorage.removeItem(key); return {key, deleted:true}; },
+};
+
+let _saveTimer = null;
+function scheduleSave(key, data) {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => { store.set(key, JSON.stringify(data)).catch(()=>{}); }, 500);
+}
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+let DATA = {
+  animals: [], movements: [], medPurchases: [], medAdmin: [],
+  deaths: [], tagReplacements: [], notes: [], settings: {},
+  feedLog: [], lambings: [], inventories: []
+};
+
+const KEYS = {
+  animals:'flock:animals', movements:'flock:movements', medPurchases:'flock:medicines-purchases',
+  medAdmin:'flock:medicines-admin', deaths:'flock:deaths', tagReplacements:'flock:tag-replacements',
+  notes:'flock:notes', settings:'flock:settings', feedLog:'flock:feed-log',
+  lambings:'flock:lambings', inventories:'flock:inventories'
+};
+
+function saveField(field) { scheduleSave(KEYS[field], DATA[field]); }
+
+function seedAnimals() {
+  const a = [];
+  for(let i=1;i<=8;i++) a.push({id:genId(),eidTag:'',visualTag:'',name:`Ewe ${i}`,breed:'Easycare',sex:'ewe',dateOfBirth:null,approxAge:'~3 years',dateTagged:null,tagType:'adult',bornOnHolding:false,source:'',damId:null,sireId:null,status:'active',statusDate:null,photoUrl:null,createdAt:now(),notes:''});
+  a.push({id:genId(),eidTag:'',visualTag:'',name:'Leroy',breed:'Easycare',sex:'ram',dateOfBirth:null,approxAge:'~3 years',dateTagged:null,tagType:'adult',bornOnHolding:false,source:'',damId:null,sireId:null,status:'active',statusDate:null,photoUrl:null,createdAt:now(),notes:''});
+  a.push({id:genId(),eidTag:'',visualTag:'',name:'Snowy',breed:'Welsh Mountain',sex:'wether',dateOfBirth:null,approxAge:'~3 years',dateTagged:null,tagType:'adult',bornOnHolding:false,source:'',damId:null,sireId:null,status:'active',statusDate:null,photoUrl:null,createdAt:now(),notes:''});
+  return a;
+}
+
+function seedSettings() {
+  return {holderName:'',holdingAddress:'',cphNumber:'',flockNumber:'',productionType:'Meat',tuppingStart:'2025-11-01',tuppingEnd:'2025-12-13',ramId:null,gestationMin:145,gestationMax:152};
+}
+
+async function loadData() {
+  for(const [field,key] of Object.entries(KEYS)) {
+    try { const r = await store.get(key); DATA[field] = JSON.parse(r.value); }
+    catch {
+      if(field==='animals') DATA[field] = seedAnimals();
+      else if(field==='settings') DATA[field] = seedSettings();
+      else DATA[field] = [];
+      await store.set(key, JSON.stringify(DATA[field]));
+    }
+  }
+}
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+let currentTab = 'home';
+let navStack = [];
+
+function navigate(view) { navStack.push(view); render(); }
+function goBack() { navStack.pop(); render(); }
+function switchTab(t) { currentTab=t; navStack=[]; render(); }
+
+// ─── Computed helpers ────────────────────────────────────────────────────────
+function getActive() { return DATA.animals.filter(a=>a.status==='active'); }
+function getEwes() { return getActive().filter(a=>a.sex==='ewe'); }
+function getRams() { return getActive().filter(a=>a.sex==='ram'); }
+
+function getLambingSeason() {
+  const s = DATA.settings;
+  if(!s.tuppingStart||!s.tuppingEnd) return null;
+  const earliest = addDays(s.tuppingStart, s.gestationMin||145);
+  const latest = addDays(s.tuppingEnd, s.gestationMax||152);
+  const today = todayISO();
+  const windowStart = addDays(earliest,-14);
+  const windowEnd = addDays(latest,14);
+  return {earliest,latest,windowStart,windowEnd,isActive:today>=windowStart&&today<=windowEnd};
+}
+
+function getSeasonLambings() {
+  const ls = getLambingSeason();
+  if(!ls) return [];
+  return DATA.lambings.filter(l=>l.date>=ls.earliest&&l.date<=ls.latest);
+}
+
+function getWithdrawalAlerts() {
+  const today = todayISO();
+  return DATA.medAdmin.filter(m=>m.earliestSlaughterDate&&m.earliestSlaughterDate>today);
+}
+
+// ─── Rendering helpers ───────────────────────────────────────────────────────
+function badge(text,color,sm) { return `<span class="badge ${sm?'badge-sm':''}" style="background:${color}20;color:${color}">${esc(text)}</span>`; }
+
+function cardStart(extra='',onclick='') {
+  return `<div class="card ${onclick?'card-tap':''}" ${onclick?`onclick="${onclick}"`:''} ${extra}>`;
+}
+
+function header(title, onBack, rightHtml='') {
+  return `<div class="header">${onBack?`<button class="back-btn" onclick="${onBack}">${icon('back',22)}</button>`:''}
+    <h2>${esc(title)}</h2>${rightHtml}</div>`;
+}
+
+function formGroup(lbl,html) { return `<div class="form-group"><label class="form-label">${esc(lbl)}</label>${html}</div>`; }
+function inputField(lbl,id,val,type='text',ph='') { return formGroup(lbl,`<input class="form-input" id="${id}" type="${type}" value="${esc(val||'')}" placeholder="${esc(ph)}">`); }
+function textareaField(lbl,id,val,ph='') { return formGroup(lbl,`<textarea class="form-input" id="${id}" placeholder="${esc(ph)}">${esc(val||'')}</textarea>`); }
+function selectField(lbl,id,val,opts) {
+  let h = `<select class="form-input" id="${id}"><option value="">— Select —</option>`;
+  opts.forEach(o=>{ h+=`<option value="${esc(o.value)}" ${val===o.value?'selected':''}>${esc(o.label)}</option>`; });
+  return formGroup(lbl,h+'</select>');
+}
+function toggleField(lbl,id,val,opts) {
+  let h = `<div class="toggle-group" id="${id}">`;
+  opts.forEach(o=>{ h+=`<button class="toggle-btn ${val===o.value?'active':''}" data-value="${esc(String(o.value))}">${esc(o.label)}</button>`; });
+  return formGroup(lbl,h+'</div>');
+}
+function setupToggle(id,cb) {
+  const el=document.getElementById(id); if(!el) return;
+  el.querySelectorAll('.toggle-btn').forEach(b=>b.addEventListener('click',()=>{
+    el.querySelectorAll('.toggle-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); cb(b.dataset.value);
+  }));
+}
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
+function renderHome() {
+  const s = DATA.settings;
+  const active = getActive();
+  const ewes = getEwes();
+  const ls = getLambingSeason();
+  const sl = getSeasonLambings();
+  const wa = getWithdrawalAlerts();
+  const ewesLambedSet = new Set(sl.map(l=>l.eweId));
+  const ewesToLamb = ewes.filter(e=>!ewesLambedSet.has(e.id));
+  const totalLive = sl.reduce((s,l)=>s+(l.liveBorn||0),0);
+  const pct = sl.length>0?Math.round(totalLive/sl.length*100):0;
+  const today = todayISO();
+  const month = new Date().getMonth();
+  const year = new Date().getFullYear();
+  const hasInv = DATA.inventories.some(i=>i.year===year);
+  const needsInv = (month===10||month===11)&&!hasInv;
+  const oldTags = DATA.tagReplacements.filter(t=>daysBetween(t.date,today)>28).length;
+  const overdue = oldTags + (needsInv?1:0);
+
+  let lambingStatus = '';
+  if(ls) {
+    const daysTo = daysBetween(today, ls.earliest);
+    if(today<ls.earliest) lambingStatus=`${Math.max(0,daysTo)} days to first due`;
+    else if(today<=ls.latest) lambingStatus=ewesToLamb.length>0?`${ewesToLamb.length} ewes still to lamb`:'All ewes lambed!';
+    else lambingStatus='Season complete';
+  }
+
+  let h = `<div class="pt-4 pb-2"><h1 class="text-2xl font-bold">${s.holderName?esc(s.holderName)+"'s Flock":'Flock Manager'}</h1>`;
+  if(!s.holderName) h+=`<button class="btn btn-ghost text-sm" style="color:var(--primary);padding:4px 0" onclick="navigate({type:'settingsView'})">Set up your holding →</button>`;
+  h+='</div>';
+
+  h+=`<div class="grid-2 mb-4">
+    ${cardStart()}<div class="text-2xl font-bold" style="color:var(--primary)">${active.length}</div><div class="text-sm" style="color:var(--text-muted)">Active animals</div></div>
+    ${cardStart()}<div class="text-sm font-semibold" style="color:${ls?.isActive?'var(--accent)':'var(--text-muted)'}">${ls?(ls.isActive?'🐑':'📅'):'—'}</div><div class="text-xs mt-1" style="color:var(--text-muted)">${lambingStatus||'Set tupping dates'}</div></div>
+    ${cardStart()}<div class="text-2xl font-bold" style="color:${wa.length?'var(--accent)':'var(--primary)'}">${wa.length}</div><div class="text-sm" style="color:var(--text-muted)">Withdrawal alerts</div></div>
+    ${cardStart()}<div class="text-2xl font-bold" style="color:${overdue?'var(--accent)':'var(--primary)'}">${overdue}</div><div class="text-sm" style="color:var(--text-muted)">Actions needed</div></div>
+  </div>`;
+
+  if(ls?.isActive) {
+    const pctW = ewes.length>0?(sl.length/ewes.length*100):0;
+    h+=`<div class="card mb-4"><div class="flex justify-between items-center mb-2"><span class="text-sm font-semibold">Lambing Progress</span><span class="text-xs" style="color:var(--text-muted)">${sl.length} / ${ewes.length} ewes</span></div>
+      <div class="progress-bar mb-2"><div class="progress-fill" style="width:${pctW}%"></div></div>
+      <div class="flex justify-between text-xs" style="color:var(--text-muted)"><span>${totalLive} live lambs</span><span>${pct}% lambing rate</span></div></div>`;
+  }
+
+  h+=`<div class="flex-col gap-2 mb-4" style="display:flex">`;
+  if(ls?.isActive) h+=`<button class="btn btn-primary btn-lg btn-full" onclick="navigate({type:'lambingRecord'})">${icon('heart',20)} Record Lambing</button>`;
+  h+=`<div class="flex gap-2"><button class="btn btn-secondary flex-1" onclick="navigate({type:'treatmentForm'})">${icon('syringe',18)} Treatment</button>
+    <button class="btn btn-secondary flex-1" onclick="navigate({type:'movementForm'})">${icon('truck',18)} Movement</button></div></div>`;
+
+  // Recent activity
+  const items = [];
+  DATA.lambings.forEach(l=>{ const e=DATA.animals.find(a=>a.id===l.eweId); items.push({date:l.date,type:'lambing',lbl:`${label(e)} lambed — ${l.liveBorn} live`,icon:'baby'}); });
+  DATA.medAdmin.forEach(m=>items.push({date:m.date,type:'treatment',lbl:`${m.productName} — ${m.animalGroupDescription||((m.animalIds?.length||0)+' animal(s)')}`,icon:'syringe'}));
+  DATA.movements.forEach(m=>items.push({date:m.date,type:'movement',lbl:`${m.direction==='on'?'On':'Off'} — ${m.animalIds?.length||0} animal(s)`,icon:'truck'}));
+  DATA.deaths.forEach(d=>{ const a=DATA.animals.find(x=>x.id===d.animalId); items.push({date:d.createdAt,type:'death',lbl:`${label(a)} — ${d.cause||'death recorded'}`,icon:'skull'}); });
+  items.sort((a,b)=>b.date.localeCompare(a.date));
+
+  if(items.length>0) {
+    h+=`<h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Recent Activity</h3>`;
+    items.slice(0,5).forEach(it=>{
+      h+=`<div class="card card-tap mb-2"><div class="flex items-center gap-3"><div style="color:var(--text-muted)">${icon(it.icon,18)}</div><div class="flex-1" style="min-width:0"><div class="text-sm font-medium truncate">${esc(it.lbl)}</div><div class="text-xs" style="color:var(--text-muted)">${toUK(it.date)}</div></div></div></div>`;
+    });
+  }
+  return h;
+}
+
+function renderFlock() {
+  let h = header('Flock Register');
+  h+=`<div class="flex gap-2 mb-3" style="flex-wrap:wrap">
+    <select class="form-input" id="flock-status" style="width:auto;padding:6px 10px;font-size:14px"><option value="active">Active</option><option value="all">All</option><option value="sold">Sold</option><option value="slaughtered">Slaughtered</option><option value="dead">Dead</option></select>
+    <select class="form-input" id="flock-sex" style="width:auto;padding:6px 10px;font-size:14px"><option value="all">All types</option><option value="ewe">Ewes</option><option value="ram">Rams</option><option value="wether">Wethers</option><option value="ewe_lamb">Ewe Lambs</option><option value="ram_lamb">Ram Lambs</option></select>
+  </div><div id="flock-list"></div>
+  <button class="fab" onclick="navigate({type:'animalForm'})">${icon('plus',26)}</button>`;
+  return h;
+}
+
+function setupFlock() {
+  const statusEl=document.getElementById('flock-status');
+  const sexEl=document.getElementById('flock-sex');
+  const listEl=document.getElementById('flock-list');
+  if(!statusEl) return;
+
+  function refresh() {
+    let list = DATA.animals.slice();
+    const sf = statusEl.value;
+    const sx = sexEl.value;
+    if(sf!=='all') list=list.filter(a=>a.status===sf);
+    if(sx!=='all') list=list.filter(a=>a.sex===sx);
+    list.sort((a,b)=>label(a).toLowerCase().localeCompare(label(b).toLowerCase()));
+    if(sf==='all') list=[...list.filter(a=>a.status==='active'),...list.filter(a=>a.status!=='active')];
+
+    let h=`<div class="text-xs mb-3" style="color:var(--text-muted)">${list.length} animal${list.length!==1?'s':''}</div>`;
+    list.forEach(a=>{
+      h+=`<div class="card card-tap mb-2" onclick="navigate({type:'animalProfile',animalId:'${a.id}'})" style="${a.status!=='active'?'opacity:0.6':''}">
+        <div class="flex items-center gap-3">
+          <div class="avatar">${a.photoUrl?`<img src="${a.photoUrl}" alt="">`:SEX_ICONS[a.sex]||'?'}</div>
+          <div class="flex-1" style="min-width:0"><div class="text-sm font-semibold truncate">${esc(label(a))}</div>
+            <div class="text-xs" style="color:var(--text-muted)">${esc(a.breed)} · ${SEX_LABELS[a.sex]||a.sex}</div></div>
+          ${badge(a.status,STATUS_COLORS[a.status]||'#7A756F',true)}
+          <div style="color:var(--text-light)">${icon('chevron',18)}</div>
+        </div></div>`;
+    });
+    if(list.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('users',40)}<p class="text-sm mt-2">No animals match your filters</p></div>`;
+    listEl.innerHTML=h;
+  }
+  statusEl.onchange=refresh; sexEl.onchange=refresh;
+  refresh();
+}
+
+function renderAnimalProfile(animalId) {
+  const a = DATA.animals.find(x=>x.id===animalId);
+  if(!a) return header('Not Found','goBack()')+'<p>Animal not found.</p>';
+
+  const dam = a.damId?DATA.animals.find(x=>x.id===a.damId):null;
+  const sire = a.sireId?DATA.animals.find(x=>x.id===a.sireId):null;
+  const offspring = DATA.animals.filter(x=>x.damId===animalId||x.sireId===animalId);
+  const age = a.dateOfBirth?`${Math.floor(daysBetween(a.dateOfBirth,todayISO())/365)} years`:a.approxAge||'Unknown';
+
+  let h = header(label(a),'goBack()',`<button class="btn btn-ghost btn-sm" onclick="navigate({type:'animalForm',editId:'${a.id}'})">${icon('edit',18)}</button>`);
+
+  h+=`<div class="card mb-4"><div class="flex gap-3" style="align-items:flex-start">
+    <div class="avatar-lg">${a.photoUrl?`<img src="${a.photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover">`:SEX_ICONS[a.sex]}</div>
+    <div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-lg font-bold">${esc(label(a))}</span> ${badge(a.status,STATUS_COLORS[a.status],true)}</div>
+    <div class="text-sm" style="color:var(--text-muted)">${esc(a.breed)} · ${SEX_LABELS[a.sex]} · ${esc(age)}</div>
+    ${a.eidTag?`<div class="text-xs mt-1" style="color:var(--text-muted)">EID: ${esc(a.eidTag)}</div>`:''}
+    ${a.visualTag?`<div class="text-xs" style="color:var(--text-muted)">Visual: ${esc(a.visualTag)}</div>`:''}
+    </div></div></div>`;
+
+  if(dam||sire) {
+    h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Parentage</h3>`;
+    if(dam) h+=`<div class="flex items-center gap-2 mb-1 card-tap" onclick="navigate({type:'animalProfile',animalId:'${dam.id}'})"><span class="text-sm">Dam: <strong>${esc(label(dam))}</strong></span>${icon('chevron',14)}</div>`;
+    if(sire) h+=`<div class="flex items-center gap-2 card-tap" onclick="navigate({type:'animalProfile',animalId:'${sire.id}'})"><span class="text-sm">Sire: <strong>${esc(label(sire))}</strong></span>${icon('chevron',14)}</div>`;
+    h+='</div>';
+  }
+
+  if(offspring.length>0) {
+    h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Offspring (${offspring.length})</h3>`;
+    offspring.forEach(o=>{ h+=`<div class="flex items-center gap-2 mb-1 card-tap" onclick="navigate({type:'animalProfile',animalId:'${o.id}'})"><span class="text-sm">${esc(label(o))} — ${SEX_LABELS[o.sex]}</span> ${badge(o.status,STATUS_COLORS[o.status],true)} ${icon('chevron',14)}</div>`; });
+    h+='</div>';
+  }
+
+  // Timeline
+  const items = [];
+  DATA.lambings.filter(l=>l.eweId===animalId).forEach(l=>items.push({date:l.date,type:'Lambing',detail:`${l.liveBorn} live, ${l.deadBorn} dead`}));
+  DATA.medAdmin.filter(m=>(m.animalIds||[]).includes(animalId)).forEach(t=>items.push({date:t.date,type:'Treatment',detail:`${t.productName} — ${t.dose}`}));
+  DATA.movements.filter(m=>(m.animalIds||[]).includes(animalId)).forEach(m=>items.push({date:m.date,type:'Movement',detail:`${m.direction==='on'?'On':'Off'} — ${m.reason}`}));
+  DATA.deaths.filter(d=>d.animalId===animalId).forEach(d=>items.push({date:d.createdAt,type:'Death',detail:d.cause}));
+  DATA.tagReplacements.filter(t=>t.animalId===animalId).forEach(t=>items.push({date:t.date,type:'Tag change',detail:`${t.originalTag} → ${t.newTag}`}));
+  DATA.notes.filter(n=>n.animalId===animalId).forEach(n=>items.push({date:n.date,type:'Note',detail:n.text}));
+  items.sort((a,b)=>b.date.localeCompare(a.date));
+
+  h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Timeline</h3>`;
+  if(items.length===0) h+=`<p class="text-sm" style="color:var(--text-muted)">No events recorded yet.</p>`;
+  items.forEach(it=>{ h+=`<div class="timeline-item"><div class="text-xs font-medium" style="color:var(--text-muted);width:72px;flex-shrink:0">${toUK(it.date)}</div><div><div class="text-xs font-semibold" style="color:var(--primary)">${esc(it.type)}</div><div class="text-sm">${esc(it.detail)}</div></div></div>`; });
+  h+='</div>';
+
+  // Add note
+  h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Add Note</h3>
+    <div class="flex gap-2"><input class="form-input flex-1" id="note-input" placeholder="Quick note…" style="flex:1">
+    <button class="btn btn-primary btn-sm" onclick="addAnimalNote('${a.id}')">Add</button></div></div>`;
+
+  if(a.status==='active') {
+    h+=`<div class="flex gap-2 mb-4"><button class="btn btn-danger btn-sm" onclick="confirmAction('Record ${esc(label(a))} as dead?',()=>navigate({type:'deathForm',preselectedAnimalId:'${a.id}'}))">${icon('skull',16)} Record Death</button></div>`;
+  }
+  return h;
+}
+
+function addAnimalNote(animalId) {
+  const inp=document.getElementById('note-input'); if(!inp||!inp.value.trim()) return;
+  DATA.notes.push({id:genId(),animalId,date:todayISO(),text:inp.value.trim(),createdAt:now()});
+  saveField('notes'); render();
+}
+
+// ─── Animal Form ─────────────────────────────────────────────────────────────
+let _animalForm = {};
+
+function renderAnimalForm(editId) {
+  const existing = editId?DATA.animals.find(a=>a.id===editId):null;
+  _animalForm = existing ? {...existing} : {eidTag:'',visualTag:'',name:'',breed:'Easycare',sex:'ewe',dateOfBirth:'',approxAge:'',dateTagged:'',tagType:'adult',bornOnHolding:false,source:'',damId:'',sireId:'',status:'active',photoUrl:null,notes:''};
+
+  const dams = getActive().filter(a=>a.sex==='ewe'&&a.id!==editId);
+  const sires = getActive().filter(a=>a.sex==='ram'&&a.id!==editId);
+  const f = _animalForm;
+
+  let h = header(existing?'Edit Animal':'Add Animal','goBack()');
+  h+=`<div class="card">`;
+  h+=inputField('Name (optional)','af-name',f.name,'text','e.g. Daisy');
+  h+=inputField('EID Tag','af-eid',f.eidTag);
+  h+=inputField('Visual Tag','af-vis',f.visualTag);
+  h+=inputField('Breed','af-breed',f.breed);
+  h+=toggleField('Sex','af-sex',f.sex,[{value:'ewe',label:'Ewe'},{value:'ram',label:'Ram'},{value:'wether',label:'Wether'},{value:'ewe_lamb',label:'Ewe Lamb'},{value:'ram_lamb',label:'Ram Lamb'}]);
+  h+=toggleField('Tag Type','af-tagtype',f.tagType,[{value:'adult',label:'Adult (2 tags)'},{value:'slaughter',label:'Slaughter (EID)'}]);
+  h+=inputField('Date of Birth','af-dob',f.dateOfBirth,'date');
+  h+=inputField('Approximate Age','af-age',f.approxAge,'text','e.g. ~3 years');
+  h+=`<div class="form-group"><label class="flex items-center gap-3" style="cursor:pointer"><input type="checkbox" id="af-boh" ${f.bornOnHolding?'checked':''} style="width:20px;height:20px"><span class="text-sm font-medium">Born on holding</span></label></div>`;
+  h+=inputField('Source (if bought in)','af-source',f.source);
+  h+=selectField('Dam','af-dam',f.damId||'',dams.map(a=>({value:a.id,label:label(a)})));
+  h+=selectField('Sire','af-sire',f.sireId||'',sires.map(a=>({value:a.id,label:label(a)})));
+  h+=`<div class="form-group"><label class="form-label">Photo</label><input type="file" id="af-photo" accept="image/*" capture="environment" class="text-sm" style="color:var(--text-muted)">`;
+  if(f.photoUrl) h+=`<img src="${f.photoUrl}" style="margin-top:8px;width:96px;height:96px;border-radius:12px;object-fit:cover">`;
+  h+=`</div>`;
+  h+=textareaField('Notes','af-notes',f.notes);
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="saveAnimal('${editId||''}')">${existing?'Save Changes':'Add Animal'}</button>`;
+  h+='</div>';
+  return h;
+}
+
+function setupAnimalForm() {
+  setupToggle('af-sex',v=>{_animalForm.sex=v});
+  setupToggle('af-tagtype',v=>{_animalForm.tagType=v});
+  const photoEl=document.getElementById('af-photo');
+  if(photoEl) photoEl.onchange=e=>{
+    const file=e.target.files?.[0]; if(!file) return;
+    const canvas=document.createElement('canvas');
+    const img=new Image();
+    img.onload=()=>{const s=800/img.width;canvas.width=img.width>800?800:img.width;canvas.height=img.width>800?img.height*s:img.height;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);_animalForm.photoUrl=canvas.toDataURL('image/jpeg',0.7)};
+    img.src=URL.createObjectURL(file);
+  };
+}
+
+function saveAnimal(editId) {
+  const f = _animalForm;
+  f.name=document.getElementById('af-name')?.value||'';
+  f.eidTag=document.getElementById('af-eid')?.value||'';
+  f.visualTag=document.getElementById('af-vis')?.value||'';
+  f.breed=document.getElementById('af-breed')?.value||'Easycare';
+  f.dateOfBirth=document.getElementById('af-dob')?.value||null;
+  f.approxAge=document.getElementById('af-age')?.value||'';
+  f.bornOnHolding=document.getElementById('af-boh')?.checked||false;
+  f.source=document.getElementById('af-source')?.value||'';
+  f.damId=document.getElementById('af-dam')?.value||null;
+  f.sireId=document.getElementById('af-sire')?.value||null;
+  f.notes=document.getElementById('af-notes')?.value||'';
+
+  if(editId) {
+    const idx=DATA.animals.findIndex(a=>a.id===editId);
+    if(idx>=0) DATA.animals[idx]={...DATA.animals[idx],...f};
+  } else {
+    DATA.animals.push({...f,id:genId(),createdAt:now(),status:'active',statusDate:null});
+  }
+  saveField('animals'); goBack();
+}
+
+// ─── Lambing Screen ──────────────────────────────────────────────────────────
+function renderLambing() {
+  const ls=getLambingSeason(); const ewes=getEwes(); const sl=getSeasonLambings();
+  const lambedSet=new Set(sl.map(l=>l.eweId));
+  const due=ewes.filter(e=>!lambedSet.has(e.id));
+  const totalLive=sl.reduce((s,l)=>s+(l.liveBorn||0),0);
+  const totalDead=sl.reduce((s,l)=>s+(l.deadBorn||0),0);
+  const pct=sl.length>0?Math.round(totalLive/sl.length*100):0;
+  const avg=sl.length>0?(totalLive/sl.length).toFixed(1):'—';
+  const assisted=sl.filter(l=>l.assistance&&l.assistance!=='none').length;
+
+  let h=header('Lambing Tracker');
+  if(ls) {
+    h+=`<div class="card mb-4"><div class="text-sm" style="color:var(--text-muted)">Tupping: ${toUK(DATA.settings.tuppingStart)} – ${toUK(DATA.settings.tuppingEnd)}</div>
+      <div class="text-sm mt-1" style="color:var(--text-muted)">Lambing window: ${toUK(ls.earliest)} – ${toUK(ls.latest)}</div></div>`;
+  }
+  h+=`<button class="btn btn-primary btn-lg btn-full mb-4" onclick="navigate({type:'lambingRecord'})">${icon('heart',20)} Record Lambing</button>`;
+
+  h+=`<h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Ewes Due (${due.length})</h3>`;
+  if(due.length===0) h+=`<div class="card mb-4"><p class="text-sm" style="color:var(--text-muted)">All ewes have lambed or no ewes in flock.</p></div>`;
+  due.forEach(e=>{
+    h+=`<div class="card card-tap mb-2" onclick="navigate({type:'animalProfile',animalId:'${e.id}'})"><div class="flex items-center gap-3">
+      <div class="avatar">♀</div><div class="flex-1"><div class="text-sm font-semibold">${esc(label(e))}</div>
+      ${ls?`<div class="text-xs" style="color:var(--text-muted)">Due: ${toUK(ls.earliest)} – ${toUK(ls.latest)}</div>`:''}</div></div></div>`;
+  });
+
+  h+=`<div class="mt-4"><button class="btn btn-ghost text-sm font-semibold mb-2" id="toggle-lambed" style="color:var(--text-muted)">Ewes Lambed (${sl.length}) ${icon('chevron',14)}</button><div id="lambed-list" class="hidden">`;
+  sl.forEach(l=>{
+    const ewe=DATA.animals.find(a=>a.id===l.eweId);
+    h+=`<div class="card mb-2"><div class="text-sm font-semibold">${esc(label(ewe||{}))}</div>
+      <div class="text-xs" style="color:var(--text-muted)">${toUK(l.date)} · ${l.liveBorn} live${l.deadBorn>0?`, ${l.deadBorn} dead`:''}${l.assistance&&l.assistance!=='none'?` · ${l.assistance} assist`:''}</div></div>`;
+  });
+  h+='</div></div>';
+
+  if(sl.length>0) {
+    h+=`<div class="card mt-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Season Summary</h3>
+      <div class="grid-2 text-sm"><div>Ewes lambed: <strong>${sl.length} / ${ewes.length}</strong></div><div>Lambing %: <strong>${pct}%</strong></div>
+      <div>Live lambs: <strong>${totalLive}</strong></div><div>Dead lambs: <strong>${totalDead}</strong></div>
+      <div>Avg litter: <strong>${avg}</strong></div><div>Assisted: <strong>${assisted}</strong></div></div></div>`;
+  }
+  return h;
+}
+
+function setupLambing() {
+  const btn=document.getElementById('toggle-lambed');
+  const list=document.getElementById('lambed-list');
+  if(btn&&list) btn.onclick=()=>list.classList.toggle('hidden');
+}
+
+// ─── Lambing Record (multi-step) ─────────────────────────────────────────────
+let _lambForm = {step:1, eweId:'', date:todayISO(), liveBorn:1, deadBorn:0, lambs:[], assistance:'none', eweCondition:'', notes:''};
+
+function renderLambingRecord() {
+  const ewes=getEwes();
+  const sl=getSeasonLambings();
+  const lambedSet=new Set(sl.map(l=>l.eweId));
+  const due=ewes.filter(e=>!lambedSet.has(e.id));
+  const eweList=due.length>0?due:ewes;
+  const f=_lambForm;
+
+  let h=header('Record Lambing','goBack()');
+
+  if(f.step===1) {
+    h+=`<h3 class="text-sm font-semibold mb-3" style="color:var(--text-muted)">Select Ewe</h3>`;
+    eweList.forEach(e=>{
+      h+=`<div class="card card-tap mb-2" onclick="_lambForm.eweId='${e.id}';_lambForm.step=2;render()">
+        <div class="flex items-center gap-3"><div class="avatar">♀</div><div class="text-sm font-semibold">${esc(label(e))}</div></div></div>`;
+    });
+    if(eweList.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('heart',40)}<p class="text-sm mt-2">No ewes available</p></div>`;
+  }
+  else if(f.step===2) {
+    const ewe=DATA.animals.find(a=>a.id===f.eweId);
+    h+=`<div class="card"><div class="text-sm font-semibold mb-3">Ewe: ${esc(label(ewe||{}))}</div>`;
+    h+=inputField('Date','lr-date',f.date,'date');
+    h+=toggleField('Live born','lr-live',f.liveBorn,[{value:0,label:'0'},{value:1,label:'1'},{value:2,label:'2'},{value:3,label:'3'}]);
+    h+=toggleField('Dead born','lr-dead',f.deadBorn,[{value:0,label:'0'},{value:1,label:'1'},{value:2,label:'2'}]);
+    h+=`<button class="btn btn-primary btn-full mt-2" onclick="lambStep2Next()">Next</button></div>`;
+  }
+  else if(f.step===3) {
+    h+=`<h3 class="text-sm font-semibold mb-3" style="color:var(--text-muted)">Lamb Details</h3>`;
+    f.lambs.forEach((lamb,i)=>{
+      h+=`<div class="card mb-3"><div class="text-sm font-semibold mb-2">Lamb ${i+1}</div>`;
+      h+=toggleField('Sex',`lr-sex-${i}`,lamb.sex,[{value:'ewe_lamb',label:'Ewe'},{value:'ram_lamb',label:'Ram'}]);
+      h+=inputField('Name (optional)',`lr-name-${i}`,lamb.name,'text','Leave blank if unnamed');
+      h+='</div>';
+    });
+    h+=`<button class="btn btn-primary btn-full" onclick="lambStep3Next()">Next</button>`;
+  }
+  else if(f.step===4) {
+    h+=`<div class="card">`;
+    h+=toggleField('Assistance','lr-assist',f.assistance,[{value:'none',label:'None'},{value:'minor',label:'Minor'},{value:'vet',label:'Vet'}]);
+    h+=textareaField('Ewe condition','lr-cond',f.eweCondition,'Any concerns?');
+    h+=textareaField('Notes','lr-notes',f.notes);
+    h+=`<button class="btn btn-primary btn-full mt-2" onclick="lambStep4Next()">Review</button></div>`;
+  }
+  else if(f.step===5) {
+    const ewe=DATA.animals.find(a=>a.id===f.eweId);
+    h+=`<div class="card"><h3 class="text-sm font-semibold mb-3">Review</h3><div class="text-sm" style="display:flex;flex-direction:column;gap:4px">
+      <div>Ewe: <strong>${esc(label(ewe||{}))}</strong></div><div>Date: <strong>${toUK(f.date)}</strong></div>
+      <div>Live: <strong>${f.liveBorn}</strong> · Dead: <strong>${f.deadBorn}</strong></div>`;
+    f.lambs.forEach((l,i)=>{ h+=`<div>Lamb ${i+1}: ${SEX_LABELS[l.sex]}${l.name?` — ${esc(l.name)}`:''}</div>`; });
+    h+=`<div>Assistance: <strong>${f.assistance}</strong></div>`;
+    if(f.eweCondition) h+=`<div>Condition: ${esc(f.eweCondition)}</div>`;
+    if(f.notes) h+=`<div>Notes: ${esc(f.notes)}</div>`;
+    h+=`</div><button class="btn btn-primary btn-lg btn-full mt-4" onclick="saveLambing()">Save Lambing</button></div>`;
+  }
+  return h;
+}
+
+function setupLambingRecord() {
+  const f=_lambForm;
+  if(f.step===2) {
+    setupToggle('lr-live',v=>{f.liveBorn=parseInt(v);updateLambs()});
+    setupToggle('lr-dead',v=>{f.deadBorn=parseInt(v)});
+  }
+  if(f.step===3) {
+    f.lambs.forEach((lamb,i)=>{
+      setupToggle(`lr-sex-${i}`,v=>{f.lambs[i].sex=v});
+    });
+  }
+  if(f.step===4) {
+    setupToggle('lr-assist',v=>{f.assistance=v});
+  }
+}
+
+function updateLambs() {
+  const f=_lambForm;
+  const arr=[];
+  for(let i=0;i<f.liveBorn;i++) arr.push(f.lambs[i]||{sex:'ewe_lamb',name:''});
+  f.lambs=arr;
+}
+
+function lambStep2Next() {
+  const f=_lambForm;
+  f.date=document.getElementById('lr-date')?.value||todayISO();
+  updateLambs();
+  f.step=f.liveBorn>0?3:4; render();
+}
+function lambStep3Next() {
+  const f=_lambForm;
+  f.lambs.forEach((l,i)=>{
+    l.name=document.getElementById(`lr-name-${i}`)?.value||'';
+  });
+  f.step=4; render();
+}
+function lambStep4Next() {
+  const f=_lambForm;
+  f.eweCondition=document.getElementById('lr-cond')?.value||'';
+  f.notes=document.getElementById('lr-notes')?.value||'';
+  f.step=5; render();
+}
+
+function saveLambing() {
+  const f=_lambForm;
+  const ramId=DATA.settings.ramId||null;
+  const lambIds=[];
+
+  f.lambs.forEach(lamb=>{
+    const id=genId(); lambIds.push(id);
+    DATA.animals.push({id,eidTag:'',visualTag:'',name:lamb.name||'',breed:'Easycare',sex:lamb.sex,
+      dateOfBirth:f.date,approxAge:'',dateTagged:null,tagType:'slaughter',bornOnHolding:true,source:'',
+      damId:f.eweId,sireId:ramId,status:'active',statusDate:null,photoUrl:null,createdAt:now(),notes:''});
+  });
+
+  DATA.lambings.push({id:genId(),eweId:f.eweId,date:f.date,liveBorn:f.liveBorn,deadBorn:f.deadBorn,
+    assistance:f.assistance,eweCondition:f.eweCondition,lambIds,notes:f.notes,createdAt:now()});
+
+  saveField('animals'); saveField('lambings');
+  _lambForm={step:1,eweId:'',date:todayISO(),liveBorn:1,deadBorn:0,lambs:[],assistance:'none',eweCondition:'',notes:''};
+  goBack();
+}
+
+// ─── Health Screen ───────────────────────────────────────────────────────────
+let _healthTab = 'treatments';
+
+function renderHealth() {
+  const today=todayISO();
+  let h=header('Health Records');
+  h+=`<div class="flex gap-2 mb-4">
+    <button class="toggle-btn ${_healthTab==='treatments'?'active':''}" onclick="_healthTab='treatments';render()">Treatments</button>
+    <button class="toggle-btn ${_healthTab==='purchases'?'active':''}" onclick="_healthTab='purchases';render()">Purchases</button></div>`;
+
+  if(_healthTab==='treatments') {
+    h+=`<button class="btn btn-primary btn-full mb-4" onclick="navigate({type:'treatmentForm'})">${icon('syringe',18)} Record Treatment</button>`;
+    const sorted=[...DATA.medAdmin].sort((a,b)=>b.date.localeCompare(a.date));
+    if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('syringe',40)}<p class="text-sm mt-2">No treatments recorded yet</p></div>`;
+    sorted.forEach(t=>{
+      const inW=t.earliestSlaughterDate&&t.earliestSlaughterDate>today;
+      const daysLeft=inW?daysBetween(today,t.earliestSlaughterDate):0;
+      h+=`<div class="card card-tap mb-2" onclick="navigate({type:'treatmentDetail',treatmentId:'${t.id}'})"><div class="flex justify-between" style="align-items:flex-start"><div>
+        <div class="text-sm font-semibold">${esc(t.productName)}</div>
+        <div class="text-xs" style="color:var(--text-muted)">${toUK(t.date)} · ${t.animalGroupDescription||((t.animalIds?.length||0)+' animal(s)')}</div></div>
+        ${inW?badge(`${daysLeft}d left`,'#C5944B',true):t.withdrawalDays>0?badge('Clear','#5B7F5E',true):''}</div></div>`;
+    });
+  } else {
+    h+=`<button class="btn btn-primary btn-full mb-4" onclick="navigate({type:'purchaseForm'})">${icon('package',18)} Record Purchase</button>`;
+    const sorted=[...DATA.medPurchases].sort((a,b)=>b.date.localeCompare(a.date));
+    if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('package',40)}<p class="text-sm mt-2">No purchases recorded yet</p></div>`;
+    sorted.forEach(p=>{
+      h+=`<div class="card mb-2"><div class="text-sm font-semibold">${esc(p.productName)}</div>
+        <div class="text-xs" style="color:var(--text-muted)">${toUK(p.date)} · Batch: ${esc(p.batchNumber)} · Qty: ${esc(p.quantity)}</div>
+        ${p.supplier?`<div class="text-xs" style="color:var(--text-muted)">Supplier: ${esc(p.supplier)}</div>`:''}</div>`;
+    });
+  }
+  return h;
+}
+
+function renderTreatmentDetail(treatmentId) {
+  const t=DATA.medAdmin.find(m=>m.id===treatmentId);
+  if(!t) return header('Not Found','goBack()');
+  const today=todayISO();
+  const inW=t.earliestSlaughterDate&&t.earliestSlaughterDate>today;
+  const treated=(t.animalIds||[]).map(id=>DATA.animals.find(a=>a.id===id)).filter(Boolean);
+
+  let h=header('Treatment Detail','goBack()');
+  h+=`<div class="card"><div class="text-sm" style="display:flex;flex-direction:column;gap:8px">
+    <div><span style="color:var(--text-muted)">Product:</span> <strong>${esc(t.productName)}</strong></div>
+    <div><span style="color:var(--text-muted)">Date:</span> ${toUK(t.date)}</div>
+    <div><span style="color:var(--text-muted)">Batch:</span> ${esc(t.batchNumber)}</div>
+    <div><span style="color:var(--text-muted)">Dose:</span> ${esc(t.dose)}</div>
+    <div><span style="color:var(--text-muted)">Route:</span> ${ROUTE_LABELS[t.route]||t.route}</div>
+    ${t.animalGroupDescription?`<div><span style="color:var(--text-muted)">Group:</span> ${esc(t.animalGroupDescription)}</div>`:''}
+    ${treated.length>0?`<div><span style="color:var(--text-muted)">Animals:</span> ${treated.map(a=>esc(label(a))).join(', ')}</div>`:''}
+    <div><span style="color:var(--text-muted)">Withdrawal:</span> ${t.withdrawalDays||0} days</div>
+    ${t.earliestSlaughterDate?`<div style="color:${inW?'var(--accent)':'var(--primary)'};font-weight:600">Earliest slaughter: ${toUK(t.earliestSlaughterDate)} ${inW?`(${daysBetween(today,t.earliestSlaughterDate)} days)`:'(Clear)'}</div>`:''}
+    <div><span style="color:var(--text-muted)">Given by:</span> ${esc(t.givenBy||'—')}</div>
+    ${t.notes?`<div><span style="color:var(--text-muted)">Notes:</span> ${esc(t.notes)}</div>`:''}
+  </div></div>`;
+  return h;
+}
+
+// ─── Treatment Form ──────────────────────────────────────────────────────────
+let _treatForm = {};
+let _treatMode = 'group';
+let _treatSelected = [];
+
+function renderTreatmentForm() {
+  _treatForm={date:todayISO(),productName:'',batchNumber:'',animalGroupDescription:'',dose:'',route:'injection',withdrawalDays:'',givenBy:'',notes:''};
+  _treatSelected=[];_treatMode='group';
+
+  const recent=[...new Set(DATA.medAdmin.map(m=>m.productName).filter(Boolean))].slice(0,5);
+  const active=getActive();
+
+  let h=header('Record Treatment','goBack()');
+  h+=`<div class="card">`;
+  h+=inputField('Date','tf-date',_treatForm.date,'date');
+  h+=inputField('Product Name','tf-product',_treatForm.productName);
+  if(recent.length>0) {
+    h+=`<div class="flex gap-2 mb-3" style="flex-wrap:wrap;margin-top:-8px">`;
+    recent.forEach(n=>{ h+=`<button class="pill" onclick="document.getElementById('tf-product').value='${esc(n)}'">${esc(n)}</button>`; });
+    h+='</div>';
+  }
+  h+=inputField('Batch Number','tf-batch',_treatForm.batchNumber);
+  h+=toggleField('Animals','tf-mode',_treatMode,[{value:'group',label:'Group'},{value:'individual',label:'Individual'}]);
+  h+=`<div id="tf-group-wrap">${inputField('Group Description','tf-group',_treatForm.animalGroupDescription,'text','e.g. all ewes')}</div>`;
+  h+=`<div id="tf-indiv-wrap" class="hidden"><div class="form-group"><label class="form-label">Select Animals (<span id="tf-count">0</span>)</label>
+    <div class="check-list" id="tf-animals">`;
+  active.forEach(a=>{ h+=`<label class="check-item"><input type="checkbox" value="${a.id}" onchange="updateTreatCount()"><span class="text-sm">${esc(label(a))}</span></label>`; });
+  h+=`</div></div></div>`;
+  h+=inputField('Dose','tf-dose','');
+  h+=toggleField('Route','tf-route','injection',[{value:'oral',label:'Oral'},{value:'injection',label:'Injection'},{value:'pour-on',label:'Pour-on'},{value:'other',label:'Other'}]);
+  h+=inputField('Withdrawal Period (days)','tf-wd','','number');
+  h+=`<div id="tf-wd-alert" class="hidden mb-3 p-3" style="border-radius:8px;background:var(--accent-light);border:1px solid var(--accent)"><div class="text-sm font-semibold" style="color:var(--accent)" id="tf-wd-text"></div></div>`;
+  h+=inputField('Given By','tf-by','');
+  h+=textareaField('Notes','tf-notes','');
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="saveTreatment()">Save Treatment</button>`;
+  h+='</div>';
+  return h;
+}
+
+function setupTreatmentForm() {
+  setupToggle('tf-mode',v=>{
+    _treatMode=v;
+    document.getElementById('tf-group-wrap').classList.toggle('hidden',v==='individual');
+    document.getElementById('tf-indiv-wrap').classList.toggle('hidden',v==='group');
+  });
+  setupToggle('tf-route',v=>{_treatForm.route=v});
+  const wdEl=document.getElementById('tf-wd');
+  if(wdEl) wdEl.oninput=()=>{
+    const days=parseInt(wdEl.value)||0;
+    const alert=document.getElementById('tf-wd-alert');
+    const text=document.getElementById('tf-wd-text');
+    if(days>0) { alert.classList.remove('hidden'); const dt=addDays(document.getElementById('tf-date')?.value||todayISO(),days); text.textContent=`Earliest slaughter: ${toUK(dt)}`; }
+    else alert.classList.add('hidden');
+  };
+}
+
+function updateTreatCount() {
+  const checks=document.querySelectorAll('#tf-animals input:checked');
+  document.getElementById('tf-count').textContent=checks.length;
+}
+
+function saveTreatment() {
+  const wd=parseInt(document.getElementById('tf-wd')?.value)||0;
+  const date=document.getElementById('tf-date')?.value||todayISO();
+  const animalIds=_treatMode==='individual'?[...document.querySelectorAll('#tf-animals input:checked')].map(c=>c.value):[];
+
+  DATA.medAdmin.push({
+    id:genId(), date, productName:document.getElementById('tf-product')?.value||'',
+    batchNumber:document.getElementById('tf-batch')?.value||'', animalIds,
+    animalGroupDescription:_treatMode==='group'?document.getElementById('tf-group')?.value||'':'',
+    dose:document.getElementById('tf-dose')?.value||'', route:_treatForm.route||'injection',
+    withdrawalDays:wd, earliestSlaughterDate:wd>0?addDays(date,wd):null,
+    givenBy:document.getElementById('tf-by')?.value||'',
+    notes:document.getElementById('tf-notes')?.value||'', createdAt:now()
+  });
+  saveField('medAdmin'); goBack();
+}
+
+// ─── Purchase Form ───────────────────────────────────────────────────────────
+function renderPurchaseForm() {
+  let h=header('Record Purchase','goBack()');
+  h+=`<div class="card">`;
+  h+=inputField('Date','pf-date',todayISO(),'date');
+  h+=inputField('Product Name','pf-product','');
+  h+=inputField('Batch Number','pf-batch','');
+  h+=inputField('Quantity','pf-qty','');
+  h+=inputField('Supplier','pf-supplier','');
+  h+=inputField('Prescribing Vet (optional)','pf-vet','');
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="savePurchase()">Save Purchase</button></div>`;
+  return h;
+}
+
+function savePurchase() {
+  DATA.medPurchases.push({id:genId(),date:document.getElementById('pf-date')?.value||todayISO(),
+    productName:document.getElementById('pf-product')?.value||'',batchNumber:document.getElementById('pf-batch')?.value||'',
+    quantity:document.getElementById('pf-qty')?.value||'',supplier:document.getElementById('pf-supplier')?.value||'',
+    prescribingVet:document.getElementById('pf-vet')?.value||'',createdAt:now()});
+  saveField('medPurchases'); goBack();
+}
+
+// ─── Records Screen ──────────────────────────────────────────────────────────
+function renderRecords() {
+  let h=header('Records');
+  const items=[
+    {label:'Movements',icon:'truck',type:'movementsList'},
+    {label:'Deaths',icon:'skull',type:'deathsList'},
+    {label:'Tag Replacements',icon:'tag',type:'tagsList'},
+    {label:'Annual Inventory',icon:'clipboard',type:'inventoryView'},
+    {label:'Feed Log',icon:'package',type:'feedLogView'},
+    {label:'Holding Settings',icon:'settings',type:'settingsView'},
+    {label:'Export Data',icon:'download',type:'exportView'},
+  ];
+  items.forEach(it=>{
+    h+=`<div class="card card-tap mb-2" onclick="navigate({type:'${it.type}'})"><div class="flex items-center gap-3">
+      <div style="color:var(--primary)">${icon(it.icon,20)}</div>
+      <span class="text-sm font-semibold flex-1">${it.label}</span>
+      <div style="color:var(--text-light)">${icon('chevron',18)}</div></div></div>`;
+  });
+  return h;
+}
+
+// ─── Movement Form ───────────────────────────────────────────────────────────
+let _movDir='off';let _movReason='sale';
+
+function renderMovementForm() {
+  _movDir='off';_movReason='sale';
+  const s=DATA.settings;const active=getActive();
+  let h=header('Record Movement','goBack()');
+  h+=`<div class="card">`;
+  h+=inputField('Date','mf-date',todayISO(),'date');
+  h+=toggleField('Direction','mf-dir','off',[{value:'on',label:'On'},{value:'off',label:'Off'}]);
+  h+=`<div class="form-group"><label class="form-label">Select Animals</label>
+    <div class="check-list" id="mf-animals">`;
+  active.forEach(a=>{ h+=`<label class="check-item"><input type="checkbox" value="${a.id}"><span class="text-sm">${esc(label(a))}</span></label>`; });
+  h+=`</div></div>`;
+  h+=inputField('From CPH','mf-fcph',s.cphNumber||'');
+  h+=inputField('From Name','mf-fname',s.holderName||'');
+  h+=inputField('To CPH','mf-tcph','');
+  h+=inputField('To Name','mf-tname','');
+  h+=inputField('Movement Doc Reference','mf-doc','');
+  h+=toggleField('Reason','mf-reason','sale',[{value:'purchase',label:'Purchase'},{value:'sale',label:'Sale'},{value:'slaughter',label:'Slaughter'},{value:'grazing',label:'Grazing'},{value:'other',label:'Other'}]);
+  h+=textareaField('Notes','mf-notes','');
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="saveMovement()">Save Movement</button></div>`;
+  return h;
+}
+
+function setupMovementForm() {
+  setupToggle('mf-dir',v=>{_movDir=v});
+  setupToggle('mf-reason',v=>{_movReason=v});
+}
+
+function saveMovement() {
+  const animalIds=[...document.querySelectorAll('#mf-animals input:checked')].map(c=>c.value);
+  const date=document.getElementById('mf-date')?.value||todayISO();
+  const mov={id:genId(),date,direction:_movDir,animalIds,
+    fromCph:document.getElementById('mf-fcph')?.value||'',fromName:document.getElementById('mf-fname')?.value||'',
+    toCph:document.getElementById('mf-tcph')?.value||'',toName:document.getElementById('mf-tname')?.value||'',
+    movementDocRef:document.getElementById('mf-doc')?.value||'',reason:_movReason,
+    notes:document.getElementById('mf-notes')?.value||'',createdAt:now()};
+  DATA.movements.push(mov);
+  saveField('movements');
+
+  if(_movDir==='off'&&_movReason==='slaughter'&&animalIds.length>0) {
+    confirmAction(`Mark ${animalIds.length} animal(s) as slaughtered?`,()=>{
+      animalIds.forEach(id=>{const a=DATA.animals.find(x=>x.id===id);if(a){a.status='slaughtered';a.statusDate=date}});
+      saveField('animals');render();
+    });
+  }
+  goBack();
+}
+
+// ─── Movements List ──────────────────────────────────────────────────────────
+function renderMovementsList() {
+  let h=header('Movements','goBack()');
+  h+=`<button class="btn btn-primary btn-full mb-4" onclick="navigate({type:'movementForm'})">${icon('truck',18)} Record Movement</button>`;
+  const sorted=[...DATA.movements].sort((a,b)=>b.date.localeCompare(a.date));
+  if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('truck',40)}<p class="text-sm mt-2">No movements recorded</p></div>`;
+  sorted.forEach(m=>{
+    h+=`<div class="card card-tap mb-2" onclick="navigate({type:'movementDetail',movementId:'${m.id}'})"><div class="flex items-center gap-2">
+      ${badge(m.direction==='on'?'ON':'OFF',m.direction==='on'?'#5B7F5E':'#C5944B',true)}
+      <div class="flex-1"><div class="text-sm font-semibold">${REASON_LABELS[m.reason]||m.reason}</div>
+      <div class="text-xs" style="color:var(--text-muted)">${toUK(m.date)} · ${m.animalIds?.length||0} animal(s)</div></div>
+      ${icon('chevron',16)}</div></div>`;
+  });
+  return h;
+}
+
+function renderMovementDetail(movementId) {
+  const m=DATA.movements.find(x=>x.id===movementId);
+  if(!m) return header('Not Found','goBack()');
+  const moved=(m.animalIds||[]).map(id=>DATA.animals.find(a=>a.id===id)).filter(Boolean);
+  let h=header('Movement Detail','goBack()');
+  h+=`<div class="card"><div class="text-sm" style="display:flex;flex-direction:column;gap:8px">
+    <div>${badge(m.direction==='on'?'ON':'OFF',m.direction==='on'?'#5B7F5E':'#C5944B')}</div>
+    <div><span style="color:var(--text-muted)">Date:</span> ${toUK(m.date)}</div>
+    <div><span style="color:var(--text-muted)">From:</span> ${esc(m.fromName)} (${esc(m.fromCph)})</div>
+    <div><span style="color:var(--text-muted)">To:</span> ${esc(m.toName)} (${esc(m.toCph)})</div>
+    <div><span style="color:var(--text-muted)">Reason:</span> ${REASON_LABELS[m.reason]||m.reason}</div>
+    ${m.movementDocRef?`<div><span style="color:var(--text-muted)">Doc Ref:</span> ${esc(m.movementDocRef)}</div>`:''}
+    ${moved.length>0?`<div><span style="color:var(--text-muted)">Animals:</span> ${moved.map(a=>esc(label(a))).join(', ')}</div>`:''}
+    ${m.notes?`<div><span style="color:var(--text-muted)">Notes:</span> ${esc(m.notes)}</div>`:''}
+  </div></div>`;
+  return h;
+}
+
+// ─── Deaths ──────────────────────────────────────────────────────────────────
+function renderDeathsList() {
+  let h=header('Death Records','goBack()');
+  h+=`<button class="btn btn-primary btn-full mb-4" onclick="navigate({type:'deathForm'})">${icon('skull',18)} Record Death</button>`;
+  const sorted=[...DATA.deaths].sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('skull',40)}<p class="text-sm mt-2">No death records</p></div>`;
+  sorted.forEach(d=>{
+    const a=DATA.animals.find(x=>x.id===d.animalId);
+    h+=`<div class="card mb-2"><div class="text-sm font-semibold">${esc(label(a||{}))}</div>
+      <div class="text-xs" style="color:var(--text-muted)">${esc(d.monthYear)} · ${esc(d.cause)} · ${esc(d.disposalMethod)}</div></div>`;
+  });
+  return h;
+}
+
+function renderDeathForm(preselectedId) {
+  const active=getActive();
+  const now2=new Date();
+  const defMY=`${now2.toLocaleString('en-GB',{month:'long'})} ${now2.getFullYear()}`;
+  let h=header('Record Death','goBack()');
+  h+=`<div class="card">`;
+  h+=selectField('Animal','df-animal',preselectedId||'',active.map(a=>({value:a.id,label:label(a)})));
+  h+=inputField('Month/Year','df-my','','text',defMY);
+  h+=inputField('Cause','df-cause','');
+  h+=inputField('Disposal Method','df-disposal','');
+  h+=textareaField('Notes','df-notes','');
+  h+=`<button class="btn btn-danger btn-full mt-2" onclick="saveDeath()">Record Death</button></div>`;
+  return h;
+}
+
+function saveDeath() {
+  const animalId=document.getElementById('df-animal')?.value;
+  if(!animalId) return;
+  const now2=new Date();
+  const defMY=`${now2.toLocaleString('en-GB',{month:'long'})} ${now2.getFullYear()}`;
+
+  confirmAction('Record this death? The animal will be marked as dead.',()=>{
+    DATA.deaths.push({id:genId(),animalId,monthYear:document.getElementById('df-my')?.value||defMY,
+      cause:document.getElementById('df-cause')?.value||'',disposalMethod:document.getElementById('df-disposal')?.value||'',
+      notes:document.getElementById('df-notes')?.value||'',createdAt:now()});
+    const a=DATA.animals.find(x=>x.id===animalId);
+    if(a){a.status='dead';a.statusDate=now()}
+    saveField('deaths');saveField('animals');goBack();
+  });
+}
+
+// ─── Tags ────────────────────────────────────────────────────────────────────
+function renderTagsList() {
+  const today=todayISO();
+  let h=header('Tag Replacements','goBack()');
+  h+=`<button class="btn btn-primary btn-full mb-4" onclick="navigate({type:'tagForm'})">${icon('tag',18)} Record Replacement</button>`;
+  const sorted=[...DATA.tagReplacements].sort((a,b)=>b.date.localeCompare(a.date));
+  if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('tag',40)}<p class="text-sm mt-2">No tag replacements recorded</p></div>`;
+  sorted.forEach(t=>{
+    const a=DATA.animals.find(x=>x.id===t.animalId);
+    const overdue=daysBetween(t.date,today)>28;
+    h+=`<div class="card mb-2" style="${overdue?'border:1px solid var(--accent)':''}"><div class="flex justify-between" style="align-items:flex-start">
+      <div><div class="text-sm font-semibold">${esc(label(a||{}))}</div>
+      <div class="text-xs" style="color:var(--text-muted)">${toUK(t.date)} · ${esc(t.originalTag)} → ${esc(t.newTag)}</div>
+      <div class="text-xs" style="color:var(--text-muted)">Colour: ${esc(t.tagColour)} · ${esc(t.reason)}</div></div>
+      ${overdue?badge('⚠ >28 days','#C5944B',true):''}</div></div>`;
+  });
+  return h;
+}
+
+let _tagColour='yellow';
+function renderTagForm() {
+  _tagColour='yellow';
+  const active=getActive();
+  let h=header('Record Tag Replacement','goBack()');
+  h+=`<div class="card">`;
+  h+=selectField('Animal','trf-animal','',active.map(a=>({value:a.id,label:label(a)})));
+  h+=inputField('Date','trf-date',todayISO(),'date');
+  h+=inputField('Original Tag','trf-orig','');
+  h+=inputField('New Tag','trf-new','');
+  h+=inputField('Reason','trf-reason','');
+  h+=toggleField('Tag Colour','trf-colour','yellow',[{value:'yellow',label:'Yellow (born here)'},{value:'red',label:'Red (bought in)'}]);
+  h+=textareaField('Notes','trf-notes','');
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="saveTagReplacement()">Save Replacement</button></div>`;
+  return h;
+}
+
+function setupTagForm() {
+  setupToggle('trf-colour',v=>{_tagColour=v});
+  const sel=document.getElementById('trf-animal');
+  if(sel) sel.onchange=()=>{
+    const a=DATA.animals.find(x=>x.id===sel.value);
+    if(a) { _tagColour=a.bornOnHolding?'yellow':'red';
+      document.querySelectorAll('#trf-colour .toggle-btn').forEach(b=>{b.classList.toggle('active',b.dataset.value===_tagColour)}); }
+  };
+}
+
+function saveTagReplacement() {
+  const animalId=document.getElementById('trf-animal')?.value;
+  if(!animalId) return;
+  const newTag=document.getElementById('trf-new')?.value||'';
+  DATA.tagReplacements.push({id:genId(),animalId,date:document.getElementById('trf-date')?.value||todayISO(),
+    originalTag:document.getElementById('trf-orig')?.value||'',newTag,
+    reason:document.getElementById('trf-reason')?.value||'',tagColour:_tagColour,
+    notes:document.getElementById('trf-notes')?.value||'',createdAt:now()});
+  if(newTag){const a=DATA.animals.find(x=>x.id===animalId);if(a)a.visualTag=newTag}
+  saveField('tagReplacements');saveField('animals');goBack();
+}
+
+// ─── Inventory ───────────────────────────────────────────────────────────────
+function renderInventoryView() {
+  const active=getActive();const year=new Date().getFullYear();const month=new Date().getMonth();
+  const canSnap=month===10||month===11;
+  const counts={ewes:0,rams:0,wethers:0,ewe_lambs:0,ram_lambs:0,total:active.length};
+  active.forEach(a=>{if(a.sex==='ewe')counts.ewes++;else if(a.sex==='ram')counts.rams++;else if(a.sex==='wether')counts.wethers++;else if(a.sex==='ewe_lamb')counts.ewe_lambs++;else if(a.sex==='ram_lamb')counts.ram_lambs++});
+  const hasYear=DATA.inventories.some(i=>i.year===year);
+
+  let h=header('Annual Inventory','goBack()');
+  h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-3" style="color:var(--text-muted)">Current Active Animals</h3>
+    <div class="grid-2 text-sm"><div>Ewes: <strong>${counts.ewes}</strong></div><div>Rams: <strong>${counts.rams}</strong></div>
+    <div>Wethers: <strong>${counts.wethers}</strong></div><div>Ewe Lambs: <strong>${counts.ewe_lambs}</strong></div>
+    <div>Ram Lambs: <strong>${counts.ram_lambs}</strong></div>
+    <div style="grid-column:span 2;padding-top:8px;border-top:1px solid var(--border-light)">Total: <strong>${counts.total}</strong></div></div></div>`;
+
+  if(canSnap&&!hasYear) h+=`<button class="btn btn-accent btn-full mb-4" onclick="saveInventory(${year})">${icon('clipboard',18)} Save 1 December ${year} Inventory</button>`;
+  if(hasYear) h+=`<p class="text-sm mb-4" style="color:var(--primary)">✓ ${year} inventory saved</p>`;
+
+  if(DATA.inventories.length>0) {
+    h+=`<h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">History</h3>`;
+    [...DATA.inventories].sort((a,b)=>b.year-a.year).forEach(inv=>{
+      h+=`<div class="card mb-2"><div class="text-sm font-semibold">${inv.year} Inventory</div>
+        <div class="text-xs" style="color:var(--text-muted)">Saved: ${toUK(inv.date)} · Total: ${inv.counts?.total||0}</div>
+        <div class="text-xs mt-1" style="color:var(--text-muted)">Ewes: ${inv.counts?.ewes||0} · Rams: ${inv.counts?.rams||0} · Wethers: ${inv.counts?.wethers||0} · Lambs: ${(inv.counts?.ewe_lambs||0)+(inv.counts?.ram_lambs||0)}</div></div>`;
+    });
+  }
+  return h;
+}
+
+function saveInventory(year) {
+  const active=getActive();
+  const counts={ewes:0,rams:0,wethers:0,ewe_lambs:0,ram_lambs:0,total:active.length};
+  active.forEach(a=>{if(a.sex==='ewe')counts.ewes++;else if(a.sex==='ram')counts.rams++;else if(a.sex==='wether')counts.wethers++;else if(a.sex==='ewe_lamb')counts.ewe_lambs++;else if(a.sex==='ram_lamb')counts.ram_lambs++});
+  DATA.inventories.push({id:genId(),year,date:todayISO(),counts,createdAt:now()});
+  saveField('inventories');render();
+}
+
+// ─── Feed Log ────────────────────────────────────────────────────────────────
+let _showFeedForm=false;
+
+function renderFeedLogView() {
+  const sorted=[...DATA.feedLog].sort((a,b)=>b.date.localeCompare(a.date));
+  const today=new Date();const weekAgo=new Date(today);weekAgo.setDate(weekAgo.getDate()-7);
+  const monthAgo=new Date(today);monthAgo.setMonth(monthAgo.getMonth()-1);
+  const weekTotal=DATA.feedLog.filter(f=>new Date(f.date)>=weekAgo).reduce((s,f)=>s+(f.buckets||0)*(f.kgPerBucket||1.2),0);
+  const monthTotal=DATA.feedLog.filter(f=>new Date(f.date)>=monthAgo).reduce((s,f)=>s+(f.buckets||0)*(f.kgPerBucket||1.2),0);
+  const dailyAvg=weekTotal/7;
+
+  let h=header('Feed Log','goBack()');
+  h+=`<div class="grid-2 mb-4">
+    <div class="card"><div class="text-lg font-bold" style="color:var(--primary)">${weekTotal.toFixed(1)} kg</div><div class="text-xs" style="color:var(--text-muted)">This week</div></div>
+    <div class="card"><div class="text-lg font-bold" style="color:var(--primary)">${monthTotal.toFixed(1)} kg</div><div class="text-xs" style="color:var(--text-muted)">This month</div></div></div>`;
+
+  h+=`<div class="card mb-4"><h3 class="text-sm font-semibold mb-2" style="color:var(--text-muted)">Bags Calculator</h3>
+    <div class="flex items-center gap-2" style="align-items:flex-end">
+    <div class="flex-1">${inputField('25kg bags remaining','fl-bags','','number')}</div>
+    <div class="pb-3 text-sm font-semibold" style="color:var(--accent)" id="fl-days"></div></div></div>`;
+
+  if(!_showFeedForm) {
+    h+=`<button class="btn btn-primary btn-full mb-4" onclick="_showFeedForm=true;render()">${icon('plus',18)} Log Feed</button>`;
+  } else {
+    h+=`<div class="card mb-4">`;
+    h+=inputField('Date','fl-date',todayISO(),'date');
+    h+=inputField('Group','fl-group','','text','e.g. twin-bearing ewes');
+    h+=`<div class="flex gap-2"><div class="flex-1">${inputField('Buckets','fl-buckets','1','number')}</div>
+      <div class="flex-1">${inputField('Kg/bucket','fl-kgpb','1.2','number')}</div></div>`;
+    h+=textareaField('Notes','fl-notes','');
+    h+=`<div class="flex gap-2"><button class="btn btn-secondary flex-1" onclick="_showFeedForm=false;render()">Cancel</button>
+      <button class="btn btn-primary flex-1" onclick="saveFeed()">Save</button></div></div>`;
+  }
+
+  if(sorted.length===0) h+=`<div style="text-align:center;padding:48px 0;color:var(--text-muted)">${icon('package',40)}<p class="text-sm mt-2">No feed entries logged</p></div>`;
+  sorted.slice(0,20).forEach(f=>{
+    h+=`<div class="card mb-2"><div class="flex justify-between"><div><div class="text-sm font-semibold">${esc(f.group||'General')}</div>
+      <div class="text-xs" style="color:var(--text-muted)">${toUK(f.date)}</div></div>
+      <div class="text-sm font-semibold" style="color:var(--primary)">${((f.buckets||0)*(f.kgPerBucket||1.2)).toFixed(1)} kg</div></div></div>`;
+  });
+  return h;
+}
+
+function setupFeedLog() {
+  const bagsEl=document.getElementById('fl-bags');
+  const daysEl=document.getElementById('fl-days');
+  if(bagsEl&&daysEl) {
+    const today=new Date();const weekAgo=new Date(today);weekAgo.setDate(weekAgo.getDate()-7);
+    const weekTotal=DATA.feedLog.filter(f=>new Date(f.date)>=weekAgo).reduce((s,f)=>s+(f.buckets||0)*(f.kgPerBucket||1.2),0);
+    const dailyAvg=weekTotal/7;
+    bagsEl.oninput=()=>{
+      const bags=parseFloat(bagsEl.value)||0;
+      if(bags>0&&dailyAvg>0) daysEl.textContent=`~${Math.round(bags*25/dailyAvg)} days`;
+      else daysEl.textContent='';
+    };
+  }
+}
+
+function saveFeed() {
+  DATA.feedLog.push({id:genId(),date:document.getElementById('fl-date')?.value||todayISO(),
+    group:document.getElementById('fl-group')?.value||'',buckets:parseFloat(document.getElementById('fl-buckets')?.value)||1,
+    kgPerBucket:parseFloat(document.getElementById('fl-kgpb')?.value)||1.2,
+    notes:document.getElementById('fl-notes')?.value||'',createdAt:now()});
+  saveField('feedLog');_showFeedForm=false;render();
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
+function renderSettingsView() {
+  const s=DATA.settings;const rams=getRams();
+  let h=header('Holding Settings','goBack()');
+  h+=`<div class="card">`;
+  h+=inputField('Holder Name','sf-name',s.holderName||'');
+  h+=inputField('Holding Address','sf-addr',s.holdingAddress||'');
+  h+=inputField('CPH Number','sf-cph',s.cphNumber||'','text','XX/XXX/XXXX');
+  h+=inputField('Flock Number','sf-flock',s.flockNumber||'');
+  h+=inputField('Production Type','sf-prod',s.productionType||'Meat');
+  h+=`<h3 class="text-sm font-semibold mt-4 mb-2" style="color:var(--text-muted)">Tupping & Lambing</h3>`;
+  h+=inputField('Tupping Start','sf-ts',s.tuppingStart||'','date');
+  h+=inputField('Tupping End','sf-te',s.tuppingEnd||'','date');
+  h+=selectField('Ram','sf-ram',s.ramId||'',rams.map(a=>({value:a.id,label:label(a)})));
+  h+=`<div class="flex gap-2"><div class="flex-1">${inputField('Min Gestation','sf-gmin',s.gestationMin||145,'number')}</div>
+    <div class="flex-1">${inputField('Max Gestation','sf-gmax',s.gestationMax||152,'number')}</div></div>`;
+  h+=`<button class="btn btn-primary btn-full mt-2" onclick="saveSettings()">Save Settings</button></div>`;
+  return h;
+}
+
+function saveSettings() {
+  DATA.settings={...DATA.settings,
+    holderName:document.getElementById('sf-name')?.value||'',holdingAddress:document.getElementById('sf-addr')?.value||'',
+    cphNumber:document.getElementById('sf-cph')?.value||'',flockNumber:document.getElementById('sf-flock')?.value||'',
+    productionType:document.getElementById('sf-prod')?.value||'Meat',
+    tuppingStart:document.getElementById('sf-ts')?.value||'',tuppingEnd:document.getElementById('sf-te')?.value||'',
+    ramId:document.getElementById('sf-ram')?.value||null,
+    gestationMin:parseInt(document.getElementById('sf-gmin')?.value)||145,
+    gestationMax:parseInt(document.getElementById('sf-gmax')?.value)||152};
+  saveField('settings');goBack();
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function renderExportView() {
+  let h=header('Export Data','goBack()');
+  h+=`<div class="card mb-4"><p class="text-sm mb-3" style="color:var(--text-muted)">Export all flock data as a JSON backup or a formatted text file for inspection.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="btn btn-primary btn-full" onclick="exportJSON()">${icon('download',18)} Export All Data (JSON)</button>
+    <button class="btn btn-secondary btn-full" onclick="exportInspection()">${icon('file',18)} Export for Inspection (Text)</button></div></div>`;
+  return h;
+}
+
+function exportJSON() {
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`flock-export-${todayISO()}.json`;a.click();URL.revokeObjectURL(url);
+}
+
+function exportInspection() {
+  const L=[];
+  L.push('═══════════════════════════════════════════');
+  L.push('        FLOCK REGISTER & RECORDS');
+  L.push('═══════════════════════════════════════════','');
+  L.push('HOLDING DETAILS','───────────────');
+  const s=DATA.settings;
+  L.push(`Holder: ${s.holderName||'—'}`,`Address: ${s.holdingAddress||'—'}`,`CPH: ${s.cphNumber||'—'}`,`Flock No: ${s.flockNumber||'—'}`,`Production: ${s.productionType||'—'}`,'');
+  L.push('FLOCK REGISTER','──────────────');
+  DATA.animals.forEach(a=>L.push(`${label(a)} | ${a.breed} | ${SEX_LABELS[a.sex]||a.sex} | ${a.status} | EID: ${a.eidTag||'—'} | Visual: ${a.visualTag||'—'} | Born on holding: ${a.bornOnHolding?'Yes':'No'}`));
+  L.push('');
+  L.push('MOVEMENT RECORDS','────────────────');
+  DATA.movements.forEach(m=>{const names=(m.animalIds||[]).map(id=>{const a=DATA.animals.find(x=>x.id===id);return label(a||{})}).join(', ');
+    L.push(`${toUK(m.date)} | ${m.direction.toUpperCase()} | ${m.fromCph} → ${m.toCph} | ${m.reason} | Doc: ${m.movementDocRef||'—'} | Animals: ${names}`)});
+  L.push('');
+  L.push('MEDICINE PURCHASE RECORDS','────────────────────────');
+  DATA.medPurchases.forEach(p=>L.push(`${toUK(p.date)} | ${p.productName} | Batch: ${p.batchNumber} | Qty: ${p.quantity} | Supplier: ${p.supplier||'—'} | Vet: ${p.prescribingVet||'—'}`));
+  L.push('');
+  L.push('MEDICINE ADMINISTRATION RECORDS','──────────────────────────────');
+  DATA.medAdmin.forEach(t=>{const names=(t.animalIds||[]).map(id=>{const a=DATA.animals.find(x=>x.id===id);return label(a||{})}).join(', ');
+    L.push(`${toUK(t.date)} | ${t.productName} | Batch: ${t.batchNumber} | Dose: ${t.dose} | Route: ${t.route} | Withdrawal: ${t.withdrawalDays||0}d | Slaughter from: ${toUK(t.earliestSlaughterDate)} | By: ${t.givenBy||'—'} | Animals: ${names||t.animalGroupDescription||'—'}`)});
+  L.push('');
+  L.push('DEATH RECORDS','─────────────');
+  DATA.deaths.forEach(d=>{const a=DATA.animals.find(x=>x.id===d.animalId);L.push(`${d.monthYear} | ${label(a||{})} | Cause: ${d.cause} | Disposal: ${d.disposalMethod}`)});
+  L.push('');
+  L.push('TAG REPLACEMENT RECORDS','──────────────────────');
+  DATA.tagReplacements.forEach(t=>{const a=DATA.animals.find(x=>x.id===t.animalId);L.push(`${toUK(t.date)} | ${label(a||{})} | ${t.originalTag} → ${t.newTag} | Colour: ${t.tagColour} | Reason: ${t.reason}`)});
+  L.push('');
+  L.push('ANNUAL INVENTORIES','──────────────────');
+  DATA.inventories.forEach(i=>L.push(`${i.year} (${toUK(i.date)}): Total ${i.counts?.total||0} — Ewes: ${i.counts?.ewes||0}, Rams: ${i.counts?.rams||0}, Wethers: ${i.counts?.wethers||0}, Ewe Lambs: ${i.counts?.ewe_lambs||0}, Ram Lambs: ${i.counts?.ram_lambs||0}`));
+
+  const blob=new Blob([L.join('\n')],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`flock-inspection-${todayISO()}.txt`;a.click();URL.revokeObjectURL(url);
+}
+
+// ─── Confirm Dialog ──────────────────────────────────────────────────────────
+let _confirmCb=null;
+function confirmAction(msg,cb) {
+  _confirmCb=cb;
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-overlay').classList.remove('hidden');
+}
+function confirmYes() { document.getElementById('confirm-overlay').classList.add('hidden'); if(_confirmCb)_confirmCb();_confirmCb=null; }
+function confirmNo() { document.getElementById('confirm-overlay').classList.add('hidden'); _confirmCb=null; }
+
+// ─── Main Render ─────────────────────────────────────────────────────────────
+function render() {
+  const view = navStack.length>0?navStack[navStack.length-1]:null;
+  let content='';
+  let setupFn=null;
+
+  if(view) {
+    switch(view.type) {
+      case 'animalProfile': content=renderAnimalProfile(view.animalId); break;
+      case 'animalForm': content=renderAnimalForm(view.editId); setupFn=setupAnimalForm; break;
+      case 'lambingRecord': content=renderLambingRecord(); setupFn=setupLambingRecord; break;
+      case 'treatmentForm': content=renderTreatmentForm(); setupFn=setupTreatmentForm; break;
+      case 'treatmentDetail': content=renderTreatmentDetail(view.treatmentId); break;
+      case 'purchaseForm': content=renderPurchaseForm(); break;
+      case 'movementForm': content=renderMovementForm(); setupFn=setupMovementForm; break;
+      case 'movementsList': content=renderMovementsList(); break;
+      case 'movementDetail': content=renderMovementDetail(view.movementId); break;
+      case 'deathForm': content=renderDeathForm(view.preselectedAnimalId); break;
+      case 'deathsList': content=renderDeathsList(); break;
+      case 'tagForm': content=renderTagForm(); setupFn=setupTagForm; break;
+      case 'tagsList': content=renderTagsList(); break;
+      case 'inventoryView': content=renderInventoryView(); break;
+      case 'feedLogView': content=renderFeedLogView(); setupFn=setupFeedLog; break;
+      case 'settingsView': content=renderSettingsView(); break;
+      case 'exportView': content=renderExportView(); break;
+    }
+  } else {
+    switch(currentTab) {
+      case 'home': content=renderHome(); break;
+      case 'flock': content=renderFlock(); setupFn=setupFlock; break;
+      case 'lambing': content=renderLambing(); setupFn=setupLambing; break;
+      case 'health': content=renderHealth(); break;
+      case 'records': content=renderRecords(); break;
+    }
+  }
+
+  const tabs=['home','flock','lambing','health','records'];
+  const tabIcons=['home','users','heart','pill','clipboard'];
+  const tabLabels=['Home','Flock','Lambing','Health','Records'];
+
+  let navHtml='<nav class="nav">';
+  tabs.forEach((t,i)=>{
+    navHtml+=`<button class="nav-btn ${currentTab===t?'active':''}" onclick="switchTab('${t}')">
+      ${icon(tabIcons[i],22)}<span>${tabLabels[i]}</span></button>`;
+  });
+  navHtml+='</nav>';
+
+  document.getElementById('app').innerHTML=`
+    <div class="container">${content}</div>${navHtml}
+    <div id="confirm-overlay" class="overlay hidden">
+      <div class="card"><p class="text-sm font-medium mb-4" id="confirm-msg"></p>
+      <div class="flex gap-3"><button class="btn btn-secondary flex-1" onclick="confirmNo()">Cancel</button>
+      <button class="btn btn-danger flex-1" onclick="confirmYes()">Confirm</button></div></div></div>`;
+
+  if(setupFn) requestAnimationFrame(setupFn);
+  window.scrollTo(0,0);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+loadData().then(()=>render());
+</script>
+</body>
+</html>
