@@ -142,7 +142,31 @@ textarea.form-input{min-height:80px;resize:vertical}
   <symbol id="i-baby" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></symbol>
 </svg>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+// ─── Firebase Config ─────────────────────────────────────────────────────────
+// TODO: Replace with your Firebase project config from the Firebase Console
+// Go to: Firebase Console → Project Settings → Your apps → Config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Enable offline persistence so the app works without internet
+db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+  if (err.code === 'failed-precondition') console.warn('Firestore persistence unavailable: multiple tabs open');
+  else if (err.code === 'unimplemented') console.warn('Firestore persistence not supported in this browser');
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const genId = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -159,18 +183,42 @@ const REASON_LABELS = {purchase:'Purchase',sale:'Sale',slaughter:'Slaughter',gra
 const label = a => a?.name || a?.visualTag || a?.eidTag || 'Unknown';
 const esc = s => { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
 
-// ─── Storage ─────────────────────────────────────────────────────────────────
+// ─── Storage (Firestore + localStorage cache) ───────────────────────────────
 const DB_PREFIX = 'flock:';
+const FIRESTORE_COLLECTION = 'flockData';
+
 const store = {
-  async get(key) { const v = localStorage.getItem(key); if(v===null) throw new Error('Not found'); return {key, value: v}; },
-  async set(key, value) { localStorage.setItem(key, value); return {key, value}; },
-  async delete(key) { localStorage.removeItem(key); return {key, deleted:true}; },
+  async get(key) {
+    try {
+      const doc = await db.collection(FIRESTORE_COLLECTION).doc(key).get();
+      if (doc.exists) {
+        const value = JSON.stringify(doc.data().value);
+        localStorage.setItem(key, value);
+        return { key, value };
+      }
+    } catch(e) { console.warn('Firestore read failed, falling back to localStorage:', e.message); }
+    const v = localStorage.getItem(key);
+    if (v === null) throw new Error('Not found');
+    return { key, value: v };
+  },
+  async set(key, value) {
+    localStorage.setItem(key, value);
+    try { await db.collection(FIRESTORE_COLLECTION).doc(key).set({ value: JSON.parse(value), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    catch(e) { console.warn('Firestore write failed (cached locally):', e.message); }
+    return { key, value };
+  },
+  async delete(key) {
+    localStorage.removeItem(key);
+    try { await db.collection(FIRESTORE_COLLECTION).doc(key).delete(); }
+    catch(e) { console.warn('Firestore delete failed:', e.message); }
+    return { key, deleted: true };
+  },
 };
 
-let _saveTimer = null;
+let _saveTimers = {};
 function scheduleSave(key, data) {
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => { store.set(key, JSON.stringify(data)).catch(()=>{}); }, 500);
+  clearTimeout(_saveTimers[key]);
+  _saveTimers[key] = setTimeout(() => { store.set(key, JSON.stringify(data)).catch(()=>{}); }, 500);
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────

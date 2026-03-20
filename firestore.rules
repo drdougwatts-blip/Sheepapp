@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to flockData collection
+    // TODO: Add Firebase Authentication and restrict access per user
+    match /flockData/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
